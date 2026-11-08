@@ -59,9 +59,13 @@ const encode = (uint8Array) => {
 
 const decode = (str) => {
   const out = [];
+  let shouldBeNoMoreChars = false;
   for (const chr of str) {
+    // An 8-bit character may only appear as the very last character
+    if (shouldBeNoMoreChars) throw new Error('Secondary character found before end of input');
     if (!(chr in lookupD)) throw new Error('Unrecognised Base65536 character: ' + chr);
     const [numZBits, z] = lookupD[chr];
+    if (numZBits !== BITS_PER_CHAR) shouldBeNoMoreChars = true;
     if (numZBits === 16) {
       out.push(z >> 8, z & 0xff);
     } else if (numZBits === 8) {
